@@ -11,7 +11,7 @@ if not exist "%ENV_FILE%" (
     goto :END
 )
 
-set "PROVIDERS=zai47 zai5 minimax kimi nanogpt"
+set "PROVIDERS=zai47 zai5 zai51 minimax kimi nanogpt"
 
 set "LABEL_zai47=ZAI (GLM4.7)"
 set "APIKEYVAR_zai47=ZAI_API_KEY"
@@ -32,6 +32,16 @@ set "SMALLFAST_zai5=GLM-5"
 set "OPUS_zai5=GLM-5"
 set "SONNET_zai5=GLM-5"
 set "HAIKU_zai5=GLM-5"
+
+set "LABEL_zai51=ZAI (GLM5.1)"
+set "APIKEYVAR_zai51=ZAI_API_KEY"
+set "BASEURL_zai51=https://api.z.ai/api/anthropic"
+set "AUTOUPDATES_zai51=latest"
+set "MODEL_zai51=glm-5.1"
+set "SMALLFAST_zai51=glm-5.1"
+set "OPUS_zai51=glm-5.1"
+set "SONNET_zai51=glm-5.1"
+set "HAIKU_zai51=glm-5.1"
 
 set "LABEL_minimax=MiniMax (2.5)"
 set "APIKEYVAR_minimax=MINIMAX_API_KEY"

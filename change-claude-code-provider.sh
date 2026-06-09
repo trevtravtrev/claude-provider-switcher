@@ -4,7 +4,7 @@ CLAUDE_DIR="$HOME/.claude"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
 ENV_FILE="$(dirname "$0")/.env"
 
-PROVIDERS=("zai47" "zai5" "minimax" "kimi" "nanogpt")
+PROVIDERS=("zai47" "zai5" "zai51" "minimax" "kimi" "nanogpt")
 
 LABEL_zai47="ZAI (GLM4.7)"
 API_KEY_VAR_zai47="ZAI_API_KEY"
@@ -25,6 +25,16 @@ SMALL_FAST_MODEL_zai5="GLM-5"
 OPUS_MODEL_zai5="GLM-5"
 SONNET_MODEL_zai5="GLM-5"
 HAIKU_MODEL_zai5="GLM-5"
+
+LABEL_zai51="ZAI (GLM5.1)"
+API_KEY_VAR_zai51="ZAI_API_KEY"
+BASE_URL_zai51="https://api.z.ai/api/anthropic"
+AUTO_UPDATES_zai51="latest"
+MODEL_zai51="glm-5.1"
+SMALL_FAST_MODEL_zai51="glm-5.1"
+OPUS_MODEL_zai51="glm-5.1"
+SONNET_MODEL_zai51="glm-5.1"
+HAIKU_MODEL_zai51="glm-5.1"
 
 LABEL_minimax="MiniMax (2.5)"
 API_KEY_VAR_minimax="MINIMAX_API_KEY"
