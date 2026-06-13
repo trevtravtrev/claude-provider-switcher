@@ -11,7 +11,7 @@ if not exist "%ENV_FILE%" (
     goto :END
 )
 
-set "PROVIDERS=zai47 zai5 zai51 minimax kimi nanogpt"
+set "PROVIDERS=zai47 zai5 zai51 zai52 minimax kimi nanogpt"
 
 set "LABEL_zai47=ZAI (GLM4.7)"
 set "APIKEYVAR_zai47=ZAI_API_KEY"
@@ -22,6 +22,7 @@ set "SMALLFAST_zai47=GLM-4.7"
 set "OPUS_zai47=GLM-4.7"
 set "SONNET_zai47=GLM-4.7"
 set "HAIKU_zai47=GLM-4.7"
+set "EFFORT_zai47=xhigh"
 
 set "LABEL_zai5=ZAI (GLM5)"
 set "APIKEYVAR_zai5=ZAI_API_KEY"
@@ -32,6 +33,7 @@ set "SMALLFAST_zai5=GLM-5"
 set "OPUS_zai5=GLM-5"
 set "SONNET_zai5=GLM-5"
 set "HAIKU_zai5=GLM-5"
+set "EFFORT_zai5=xhigh"
 
 set "LABEL_zai51=ZAI (GLM5.1)"
 set "APIKEYVAR_zai51=ZAI_API_KEY"
@@ -42,6 +44,19 @@ set "SMALLFAST_zai51=glm-5.1"
 set "OPUS_zai51=glm-5.1"
 set "SONNET_zai51=glm-5.1"
 set "HAIKU_zai51=glm-5.1"
+set "EFFORT_zai51=xhigh"
+
+set "LABEL_zai52=ZAI (GLM5.2)"
+set "APIKEYVAR_zai52=ZAI_API_KEY"
+set "BASEURL_zai52=https://api.z.ai/api/anthropic"
+set "AUTOUPDATES_zai52=latest"
+set "MODEL_zai52="
+set "SMALLFAST_zai52="
+set "OPUS_zai52=glm-5.2[1m]"
+set "SONNET_zai52=glm-5.2[1m]"
+set "HAIKU_zai52=glm-4.5-air"
+set "COMPACTWINDOW_zai52=1000000"
+set "EFFORT_zai52=xhigh"
 
 set "LABEL_minimax=MiniMax (2.5)"
 set "APIKEYVAR_minimax=MINIMAX_API_KEY"
@@ -92,15 +107,36 @@ echo.
 echo Current model mappings:
 for %%P in (%PROVIDERS%) do (
     echo   !LABEL_%%P!:
+    set "HAS_MAPPING=0"
     if defined MODEL_%%P (
+        set "HAS_MAPPING=1"
         echo     ANTHROPIC_MODEL: !MODEL_%%P!
-        echo     ANTHROPIC_SMALL_FAST_MODEL: !SMALLFAST_%%P!
-        echo     ANTHROPIC_DEFAULT_OPUS_MODEL: !OPUS_%%P!
-        echo     ANTHROPIC_DEFAULT_SONNET_MODEL: !SONNET_%%P!
-        echo     ANTHROPIC_DEFAULT_HAIKU_MODEL: !HAIKU_%%P!
-    ) else (
-        echo     Uses provider defaults
     )
+    if defined SMALLFAST_%%P (
+        set "HAS_MAPPING=1"
+        echo     ANTHROPIC_SMALL_FAST_MODEL: !SMALLFAST_%%P!
+    )
+    if defined OPUS_%%P (
+        set "HAS_MAPPING=1"
+        echo     ANTHROPIC_DEFAULT_OPUS_MODEL: !OPUS_%%P!
+    )
+    if defined SONNET_%%P (
+        set "HAS_MAPPING=1"
+        echo     ANTHROPIC_DEFAULT_SONNET_MODEL: !SONNET_%%P!
+    )
+    if defined HAIKU_%%P (
+        set "HAS_MAPPING=1"
+        echo     ANTHROPIC_DEFAULT_HAIKU_MODEL: !HAIKU_%%P!
+    )
+    if defined COMPACTWINDOW_%%P (
+        set "HAS_MAPPING=1"
+        echo     CLAUDE_CODE_AUTO_COMPACT_WINDOW: !COMPACTWINDOW_%%P!
+    )
+    if defined EFFORT_%%P (
+        set "HAS_MAPPING=1"
+        echo     CLAUDE_CODE_EFFORT_LEVEL: !EFFORT_%%P!
+    )
+    if "!HAS_MAPPING!"=="0" echo     Uses provider defaults
 )
 echo.
 
@@ -129,6 +165,8 @@ set "SELECTED_SMALLFAST=!SMALLFAST_%SELECTED%!"
 set "SELECTED_OPUS=!OPUS_%SELECTED%!"
 set "SELECTED_SONNET=!SONNET_%SELECTED%!"
 set "SELECTED_HAIKU=!HAIKU_%SELECTED%!"
+set "SELECTED_COMPACTWINDOW=!COMPACTWINDOW_%SELECTED%!"
+set "SELECTED_EFFORT=!EFFORT_%SELECTED%!"
 
 call :get_env_value "%SELECTED_APIKEYVAR%" SELECTED_APIKEY
 
@@ -144,6 +182,8 @@ if defined SELECTED_SMALLFAST >> "%SETTINGS_FILE%" echo     ,"ANTHROPIC_SMALL_FA
 if defined SELECTED_OPUS >> "%SETTINGS_FILE%" echo     ,"ANTHROPIC_DEFAULT_OPUS_MODEL": "%SELECTED_OPUS%"
 if defined SELECTED_SONNET >> "%SETTINGS_FILE%" echo     ,"ANTHROPIC_DEFAULT_SONNET_MODEL": "%SELECTED_SONNET%"
 if defined SELECTED_HAIKU >> "%SETTINGS_FILE%" echo     ,"ANTHROPIC_DEFAULT_HAIKU_MODEL": "%SELECTED_HAIKU%"
+if defined SELECTED_COMPACTWINDOW >> "%SETTINGS_FILE%" echo     ,"CLAUDE_CODE_AUTO_COMPACT_WINDOW": "%SELECTED_COMPACTWINDOW%"
+if defined SELECTED_EFFORT >> "%SETTINGS_FILE%" echo     ,"CLAUDE_CODE_EFFORT_LEVEL": "%SELECTED_EFFORT%"
 >> "%SETTINGS_FILE%" echo   }
 >> "%SETTINGS_FILE%" echo }
 

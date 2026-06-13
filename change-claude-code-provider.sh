@@ -4,7 +4,7 @@ CLAUDE_DIR="$HOME/.claude"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
 ENV_FILE="$(dirname "$0")/.env"
 
-PROVIDERS=("zai47" "zai5" "zai51" "minimax" "kimi" "nanogpt")
+PROVIDERS=("zai47" "zai5" "zai51" "zai52" "minimax" "kimi" "nanogpt")
 
 LABEL_zai47="ZAI (GLM4.7)"
 API_KEY_VAR_zai47="ZAI_API_KEY"
@@ -15,6 +15,7 @@ SMALL_FAST_MODEL_zai47="GLM-4.7"
 OPUS_MODEL_zai47="GLM-4.7"
 SONNET_MODEL_zai47="GLM-4.7"
 HAIKU_MODEL_zai47="GLM-4.7"
+EFFORT_zai47="xhigh"
 
 LABEL_zai5="ZAI (GLM5)"
 API_KEY_VAR_zai5="ZAI_API_KEY"
@@ -25,6 +26,7 @@ SMALL_FAST_MODEL_zai5="GLM-5"
 OPUS_MODEL_zai5="GLM-5"
 SONNET_MODEL_zai5="GLM-5"
 HAIKU_MODEL_zai5="GLM-5"
+EFFORT_zai5="xhigh"
 
 LABEL_zai51="ZAI (GLM5.1)"
 API_KEY_VAR_zai51="ZAI_API_KEY"
@@ -35,6 +37,19 @@ SMALL_FAST_MODEL_zai51="glm-5.1"
 OPUS_MODEL_zai51="glm-5.1"
 SONNET_MODEL_zai51="glm-5.1"
 HAIKU_MODEL_zai51="glm-5.1"
+EFFORT_zai51="xhigh"
+
+LABEL_zai52="ZAI (GLM5.2)"
+API_KEY_VAR_zai52="ZAI_API_KEY"
+BASE_URL_zai52="https://api.z.ai/api/anthropic"
+AUTO_UPDATES_zai52="latest"
+MODEL_zai52=""
+SMALL_FAST_MODEL_zai52=""
+OPUS_MODEL_zai52="glm-5.2[1m]"
+SONNET_MODEL_zai52="glm-5.2[1m]"
+HAIKU_MODEL_zai52="glm-4.5-air"
+COMPACT_WINDOW_zai52="1000000"
+EFFORT_zai52="xhigh"
 
 LABEL_minimax="MiniMax (2.5)"
 API_KEY_VAR_minimax="MINIMAX_API_KEY"
@@ -113,13 +128,17 @@ for provider in "${PROVIDERS[@]}"; do
     opus=$(get_provider_field "$provider" "OPUS_MODEL")
     sonnet=$(get_provider_field "$provider" "SONNET_MODEL")
     haiku=$(get_provider_field "$provider" "HAIKU_MODEL")
+    compact=$(get_provider_field "$provider" "COMPACT_WINDOW")
+    effort=$(get_provider_field "$provider" "EFFORT")
     echo "  $label:"
-    if [[ -n "$model" || -n "$small" || -n "$opus" || -n "$sonnet" || -n "$haiku" ]]; then
+    if [[ -n "$model" || -n "$small" || -n "$opus" || -n "$sonnet" || -n "$haiku" || -n "$compact" || -n "$effort" ]]; then
         [[ -n "$model" ]] && echo "    ANTHROPIC_MODEL: $model"
         [[ -n "$small" ]] && echo "    ANTHROPIC_SMALL_FAST_MODEL: $small"
         [[ -n "$opus" ]] && echo "    ANTHROPIC_DEFAULT_OPUS_MODEL: $opus"
         [[ -n "$sonnet" ]] && echo "    ANTHROPIC_DEFAULT_SONNET_MODEL: $sonnet"
         [[ -n "$haiku" ]] && echo "    ANTHROPIC_DEFAULT_HAIKU_MODEL: $haiku"
+        [[ -n "$compact" ]] && echo "    CLAUDE_CODE_AUTO_COMPACT_WINDOW: $compact"
+        [[ -n "$effort" ]] && echo "    CLAUDE_CODE_EFFORT_LEVEL: $effort"
     else
         echo "    Uses provider defaults"
     fi
@@ -152,6 +171,8 @@ selected_small=$(get_provider_field "$SELECTED_PROVIDER" "SMALL_FAST_MODEL")
 selected_opus=$(get_provider_field "$SELECTED_PROVIDER" "OPUS_MODEL")
 selected_sonnet=$(get_provider_field "$SELECTED_PROVIDER" "SONNET_MODEL")
 selected_haiku=$(get_provider_field "$SELECTED_PROVIDER" "HAIKU_MODEL")
+selected_compact=$(get_provider_field "$SELECTED_PROVIDER" "COMPACT_WINDOW")
+selected_effort=$(get_provider_field "$SELECTED_PROVIDER" "EFFORT")
 
 env_lines=(
 "\"ANTHROPIC_AUTH_TOKEN\": \"$selected_api_key\""
@@ -165,6 +186,8 @@ env_lines=(
 [[ -n "$selected_opus" ]] && env_lines+=("\"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"$selected_opus\"")
 [[ -n "$selected_sonnet" ]] && env_lines+=("\"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"$selected_sonnet\"")
 [[ -n "$selected_haiku" ]] && env_lines+=("\"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"$selected_haiku\"")
+[[ -n "$selected_compact" ]] && env_lines+=("\"CLAUDE_CODE_AUTO_COMPACT_WINDOW\": \"$selected_compact\"")
+[[ -n "$selected_effort" ]] && env_lines+=("\"CLAUDE_CODE_EFFORT_LEVEL\": \"$selected_effort\"")
 
 {
     echo "{"
