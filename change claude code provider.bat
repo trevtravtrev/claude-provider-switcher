@@ -11,7 +11,7 @@ if not exist "%ENV_FILE%" (
     goto :END
 )
 
-set "PROVIDERS=zai47 zai5 zai51 zai52 zai52_300k minimax kimi nanogpt"
+set "PROVIDERS=zai47 zai5 zai51 zai52 zai52_300k zai53 zai53_300k minimax kimi nanogpt"
 
 set "LABEL_zai47=ZAI (GLM4.7)"
 set "APIKEYVAR_zai47=ZAI_API_KEY"
@@ -69,6 +69,30 @@ set "SONNET_zai52_300k=glm-5.2[1m]"
 set "HAIKU_zai52_300k=glm-4.5-air"
 set "COMPACTWINDOW_zai52_300k=300000"
 set "EFFORT_zai52_300k=xhigh"
+
+set "LABEL_zai53=ZAI (GLM5.3)"
+set "APIKEYVAR_zai53=ZAI_API_KEY"
+set "BASEURL_zai53=https://api.z.ai/api/anthropic"
+set "AUTOUPDATES_zai53=latest"
+set "MODEL_zai53="
+set "SMALLFAST_zai53="
+set "OPUS_zai53=glm-5.3[1m]"
+set "SONNET_zai53=glm-5.3[1m]"
+set "HAIKU_zai53=glm-5.3[1m]"
+set "COMPACTWINDOW_zai53=1000000"
+set "EFFORT_zai53=xhigh"
+
+set "LABEL_zai53_300k=ZAI (GLM5.3 - 300k)"
+set "APIKEYVAR_zai53_300k=ZAI_API_KEY"
+set "BASEURL_zai53_300k=https://api.z.ai/api/anthropic"
+set "AUTOUPDATES_zai53_300k=latest"
+set "MODEL_zai53_300k="
+set "SMALLFAST_zai53_300k="
+set "OPUS_zai53_300k=glm-5.3[1m]"
+set "SONNET_zai53_300k=glm-5.3[1m]"
+set "HAIKU_zai53_300k=glm-5.3[1m]"
+set "COMPACTWINDOW_zai53_300k=300000"
+set "EFFORT_zai53_300k=xhigh"
 
 set "LABEL_minimax=MiniMax (2.5)"
 set "APIKEYVAR_minimax=MINIMAX_API_KEY"
