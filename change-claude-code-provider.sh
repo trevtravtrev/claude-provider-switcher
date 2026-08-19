@@ -4,7 +4,7 @@ CLAUDE_DIR="$HOME/.claude"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
 ENV_FILE="$(dirname "$0")/.env"
 
-PROVIDERS=("zai47" "zai5" "zai51" "zai52" "zai52_300k" "zai53" "zai53_300k" "minimax" "kimi" "nanogpt")
+PROVIDERS=("zai47" "zai5" "zai51" "zai52" "zai52_300k" "zai53" "zai53_300k" "minimax" "kimi" "nanogpt" "qwenfast" "qwensmart")
 
 LABEL_zai47="ZAI (GLM4.7)"
 API_KEY_VAR_zai47="ZAI_API_KEY"
@@ -117,6 +117,34 @@ OPUS_MODEL_nanogpt="moonshotai/kimi-k2.5"
 SONNET_MODEL_nanogpt="moonshotai/kimi-k2.5"
 HAIKU_MODEL_nanogpt="moonshotai/kimi-k2.5"
 
+# --- Local Qwen3.8 (llama-server, Anthropic-compatible /v1/messages on :8181) ---
+# Selecting one starts the model automatically; selecting any remote provider
+# stops it (frees GPU/RAM/CPU). Port 8181 because Docker takes 8080.
+QWEN_BAT='C:\Users\trevo\Documents\qwen3.8 27b\claude-code-server.bat'
+QWEN_AUTO='C:\Users\trevo\Documents\qwen3.8 27b\claude-code-autostart.bat'
+
+LABEL_qwenfast="Local Qwen3.8 FAST (quick answers)"
+API_KEY_VAR_qwenfast="LOCAL_API_KEY"
+BASE_URL_qwenfast="http://127.0.0.1:8181"
+AUTO_UPDATES_qwenfast="latest"
+MODEL_qwenfast="qwen3.8-fast"
+SMALL_FAST_MODEL_qwenfast="qwen3.8-fast"
+OPUS_MODEL_qwenfast="qwen3.8-fast"
+SONNET_MODEL_qwenfast="qwen3.8-fast"
+HAIKU_MODEL_qwenfast="qwen3.8-fast"
+COMPACT_WINDOW_qwenfast="24000"
+
+LABEL_qwensmart="Local Qwen3.8 SMART (best answers)"
+API_KEY_VAR_qwensmart="LOCAL_API_KEY"
+BASE_URL_qwensmart="http://127.0.0.1:8181"
+AUTO_UPDATES_qwensmart="latest"
+MODEL_qwensmart="qwen3.8-smart"
+SMALL_FAST_MODEL_qwensmart="qwen3.8-smart"
+OPUS_MODEL_qwensmart="qwen3.8-smart"
+SONNET_MODEL_qwensmart="qwen3.8-smart"
+HAIKU_MODEL_qwensmart="qwen3.8-smart"
+COMPACT_WINDOW_qwensmart="24000"
+
 if [[ ! -f "$ENV_FILE" ]]; then
     echo "Missing .env file at: $ENV_FILE"
     echo "Create it from .env.example first."
@@ -209,38 +237,62 @@ selected_sonnet=$(get_provider_field "$SELECTED_PROVIDER" "SONNET_MODEL")
 selected_haiku=$(get_provider_field "$SELECTED_PROVIDER" "HAIKU_MODEL")
 selected_compact=$(get_provider_field "$SELECTED_PROVIDER" "COMPACT_WINDOW")
 selected_effort=$(get_provider_field "$SELECTED_PROVIDER" "EFFORT")
+selected_hook_command=""
 
-env_lines=(
-"\"ANTHROPIC_AUTH_TOKEN\": \"$selected_api_key\""
-"\"ANTHROPIC_BASE_URL\": \"$selected_base_url\""
-"\"API_TIMEOUT_MS\": \"3000000\""
-"\"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC\": 1"
-)
-
-[[ -n "$selected_model" ]] && env_lines+=("\"ANTHROPIC_MODEL\": \"$selected_model\"")
-[[ -n "$selected_small" ]] && env_lines+=("\"ANTHROPIC_SMALL_FAST_MODEL\": \"$selected_small\"")
-[[ -n "$selected_opus" ]] && env_lines+=("\"ANTHROPIC_DEFAULT_OPUS_MODEL\": \"$selected_opus\"")
-[[ -n "$selected_sonnet" ]] && env_lines+=("\"ANTHROPIC_DEFAULT_SONNET_MODEL\": \"$selected_sonnet\"")
-[[ -n "$selected_haiku" ]] && env_lines+=("\"ANTHROPIC_DEFAULT_HAIKU_MODEL\": \"$selected_haiku\"")
-[[ -n "$selected_compact" ]] && env_lines+=("\"CLAUDE_CODE_AUTO_COMPACT_WINDOW\": \"$selected_compact\"")
-[[ -n "$selected_effort" ]] && env_lines+=("\"CLAUDE_CODE_EFFORT_LEVEL\": \"$selected_effort\"")
-
-{
-    echo "{"
-    if [[ -n "$selected_auto_updates" ]]; then
-        echo "  \"autoUpdatesChannel\": \"$selected_auto_updates\"," 
+# --- Local model lifecycle ------------------------------------------------
+# Local provider picked -> start the tier and wait until it answers.
+# Remote provider picked -> stop the model so it stops hogging GPU/RAM/CPU.
+if [[ "$SELECTED_PROVIDER" == qwen* ]]; then
+    qwen_tier="fast"
+    [[ "$SELECTED_PROVIDER" == "qwensmart" ]] && qwen_tier="smart"
+    # Remember the tier + arm the SessionStart hook (auto-start after a reboot).
+    printf '%s' "$qwen_tier" > "$HOME/.claude/qwen-tier.txt"
+    selected_hook_command="$QWEN_AUTO"
+    if [[ ! -f "$QWEN_BAT" ]]; then
+        echo "ERROR: missing $QWEN_BAT - cannot start the local model."
+    else
+        echo "Starting local Qwen3.8 $qwen_tier tier - loads in ~35-60 sec..."
+        powershell -NoProfile -Command "Stop-Process -Name llama-server -Force -ErrorAction SilentlyContinue; Start-Process -FilePath '$QWEN_BAT' -ArgumentList '$qwen_tier' -WindowStyle Minimized" >/dev/null 2>&1
+        for _ in $(seq 1 90); do
+            if curl -s -m 2 http://127.0.0.1:8181/health 2>/dev/null | grep -q '"ok"'; then
+                echo "Local model is up on http://127.0.0.1:8181"
+                break
+            fi
+            sleep 2
+        done
     fi
-    echo "  \"env\": {"
-    for i in "${!env_lines[@]}"; do
-        if [[ "$i" -lt "$((${#env_lines[@]} - 1))" ]]; then
-            echo "    ${env_lines[$i]},"
-        else
-            echo "    ${env_lines[$i]}"
-        fi
-    done
-    echo "  }"
-    echo "}"
-} > "$SETTINGS_FILE"
+else
+    powershell -NoProfile -Command "Stop-Process -Name llama-server -Force -ErrorAction SilentlyContinue" >/dev/null 2>&1
+    if tasklist 2>/dev/null | grep -qi llama-server; then
+        echo "WARNING: llama-server still running - stop it with stop-local-model.bat"
+    else
+        echo "Local model stopped (if it was running) - GPU, RAM and CPU freed."
+    fi
+fi
+# ----------------------------------------------------------------------------
+
+# --- Merge provider env into settings.json ---------------------------------
+# Old version overwrote the WHOLE file, which stripped permissions,
+# enabledPlugins and friends - breaking every other running session.
+# apply-provider.py merges the env block (and our SessionStart hook) while
+# preserving all other keys, and removes stale keys from the previously
+# selected provider.
+if [[ -f "$SETTINGS_FILE" ]]; then
+    cp -f "$SETTINGS_FILE" "$CLAUDE_DIR/settings.json.switch-backup"
+fi
+python3 "$(dirname "$0")/apply-provider.py" \
+    --settings-file "$SETTINGS_FILE" \
+    --api-key "$selected_api_key" \
+    --base-url "$selected_base_url" \
+    --auto-updates "$selected_auto_updates" \
+    --model "$selected_model" \
+    --small-fast "$selected_small" \
+    --opus "$selected_opus" \
+    --sonnet "$selected_sonnet" \
+    --haiku "$selected_haiku" \
+    --compact-window "$selected_compact" \
+    --effort "$selected_effort" \
+    --hook-command "$selected_hook_command" || exit 1
 
 echo ""
 echo "Switched to $selected_label settings."
