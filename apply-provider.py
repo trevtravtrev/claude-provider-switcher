@@ -48,8 +48,9 @@ data['env'] = env
 if args.auto_updates:
     data['autoUpdatesChannel'] = args.auto_updates
 
-# SessionStart hook: add ours for the local Qwen provider, keep any other
-# hooks the user has; on remote providers remove only ours.
+# SessionStart hook cleanup: no provider sets one anymore; when the arg is
+# empty, remove only our old autostart hook (matched by marker), keeping any
+# other hooks the user has.
 MARKER = 'claude-code-autostart'
 hooks = data.get('hooks', {}) or {}
 ss = [e for e in (hooks.get('SessionStart') or [])

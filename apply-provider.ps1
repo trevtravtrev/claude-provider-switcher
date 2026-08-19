@@ -62,8 +62,9 @@ $root['env'] = $envH
 
 if ($AutoUpdates -ne '') { $root['autoUpdatesChannel'] = "$AutoUpdates" }
 
-# SessionStart hook: add ours for the local Qwen provider, keep any other
-# hooks the user has; on remote providers remove only ours.
+# SessionStart hook cleanup: no provider sets one anymore; when the arg is
+# empty, remove only our old autostart hook (matched by marker), keeping any
+# other hooks the user has.
 $marker = 'claude-code-autostart'
 if ($HookCommand -ne '') {
     $entry = @{ hooks = @( @{ type = 'command'; command = "$HookCommand"; timeout = 150 } ) }
